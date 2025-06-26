@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON Viewer</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-lite/1.3.0/material.indigo-pink.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/material-design-icons/4.0.0/iconfont/material-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        
+        body.dark-theme {
+            background-color: #121212;
+            color: #ffffff;
+        }
+        
+        body.dark-theme .main-container {
+            background: #1e1e1e;
+        }
+        
+        body.dark-theme .input-panel,
+        body.dark-theme .output-panel {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+        
+        body.dark-theme .json-input,
+        body.dark-theme .json-output {
+            background: #2d2d2d;
+            color: #ffffff;
+            border-color: #444;
+        }
+        
+        body.dark-theme .json-string { color: #98d982; }
+        body.dark-theme .json-number { color: #79b6f2; }
+        body.dark-theme .json-boolean { color: #ff8a65; }
+        body.dark-theme .json-null { color: #ba68c8; }
+        body.dark-theme .json-key { color: #f06292; }
+        
+        .main-container {
+            width: 100%;
+            margin: 0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #3f51b5, #2196f3);
+            color: white;
+            padding: 24px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 300;
+        }
+        
+        .content {
+            display: flex;
+            min-height: calc(100vh - 140px);
+        }
+        
+        .toolbar {
+            background: rgba(255,255,255,0.95);
+            border-bottom: 1px solid #e0e0e0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        body.dark-theme .toolbar {
+            background: rgba(30,30,30,0.95);
+            border-color: #333;
+        }
+        
+        .toolbar-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .search-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .search-input {
+            padding: 8px 12px 8px 40px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-size: 14px;
+            width: 250px;
+            outline: none;
+            transition: all 0.3s;
+        }
+        
+        .search-input:focus {
+            border-color: #3f51b5;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+            width: 300px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            left: 12px;
+            color: #666;
+            font-size: 18px;
+        }
+        
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .search-result-item {
+            padding: 8px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f0f0f0;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        
+        .search-result-item:hover {
+            background: #f5f5f5;
+        }
+        
+        .search-result-path {
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .search-result-value {
+            color: #333;
+            margin-left: 8px;
+        }
+        
+        .file-input {
+            display: none;
+        }
+        
+        .json-path-display {
+            background: #e8f5e8;
+            border: 1px solid #c8e6c9;
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-bottom: 12px;
+            word-break: break-all;
+            display: none;
+        }
+        
+        body.dark-theme .json-path-display {
+            background: #263238;
+            border-color: #37474f;
+            color: #80cbc4;
+        }
+        
+        .highlighted {
+            background-color: #ffeb3b !important;
+            padding: 2px 4px;
+            border-radius: 2px;
+        }
+        
+        body.dark-theme .highlighted {
+            background-color: #ff6f00 !important;
+            color: #000;
+        }
+        
+        .view-modes {
+            display: flex;
+            background: #f0f0f0;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        
+        body.dark-theme .view-modes {
+            background: #333;
+        }
+        
+        .view-mode {
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 12px;
+            border: none;
+            background: transparent;
+            color: #666;
+            transition: all 0.3s;
+        }
+        
+        .view-mode.active {
+            background: #3f51b5;
+            color: white;
+        }
+        
+        .status-bar {
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            padding: 8px 24px;
+            font-size: 12px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        body.dark-theme .status-bar {
+            background: #262626;
+            border-color: #333;
+            color: #999;
+        }
+        
+        .compare-mode {
+            display: none;
+        }
+        
+        .compare-mode.active {
+            display: flex;
+        }
+        
+        .compare-panel {
+            flex: 1;
+            padding: 24px;
+        }
+        
+        .compare-panel:first-child {
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .diff-added {
+            background-color: #e8f5e8 !important;
+        }
+        
+        .diff-removed {
+            background-color: #ffebee !important;
+        }
+        
+        .diff-modified {
+            background-color: #fff3e0 !important;
+        }
+        
+        .json-tree-view .tree-node {
+            margin-left: 20px;
+            border-left: 1px solid #e0e0e0;
+            padding-left: 12px;
+        }
+        
+        .json-raw-view {
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .input-panel {
+            flex: 1;
+            padding: 24px;
+            border-right: 1px solid #e0e0e0;
+        }
+        
+        .output-panel {
+            flex: 1;
+            padding: 24px;
+            background-color: #fafafa;
+        }
+        
+        .json-input {
+            width: 100%;
+            height: 400px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            resize: vertical;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        
+        .json-input:focus {
+            border-color: #3f51b5;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.2);
+        }
+        
+        .json-output {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 16px;
+            height: 400px;
+            overflow: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .json-key {
+            color: #d73502;
+            font-weight: bold;
+        }
+        
+        .json-string {
+            color: #032f62;
+        }
+        
+        .json-number {
+            color: #005cc5;
+        }
+        
+        .json-boolean {
+            color: #d73a49;
+        }
+        
+        .json-null {
+            color: #6f42c1;
+        }
+        
+        .json-bracket {
+            color: #24292e;
+            font-weight: bold;
+        }
+        
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .collapsible:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .collapsed {
+            display: none;
+        }
+        
+        .toggle-icon {
+            display: inline-block;
+            width: 12px;
+            margin-right: 4px;
+            transition: transform 0.2s;
+        }
+        
+        .toggle-icon.collapsed {
+            transform: rotate(-90deg);
+        }
+        
+        .controls {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            background: #3f51b5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background: #303f9f;
+        }
+        
+        .btn-secondary {
+            background: #757575;
+        }
+        
+        .btn-secondary:hover {
+            background: #616161;
+        }
+        
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .stats {
+            background: #e3f2fd;
+            border: 1px solid #bbdefb;
+            border-radius: 4px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 12px;
+            color: #1976d2;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .input-panel {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="header">
+            <h1><i class="material-icons" style="vertical-align: middle; margin-right: 8px;">code</i>JSON Viewer Pro</h1>
+            <p style="margin: 8px 0 0 0; opacity: 0.9;">Advanced JSON viewer with search, validation, and comparison features</p>
+        </div>
+        
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <div class="search-container">
+                    <i class="material-icons search-icon">search</i>
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search JSON keys and values..." oninput="searchJson()">
+                    <div class="search-results" id="searchResults" style="display: none;"></div>
+                </div>
+                <button class="btn btn-secondary" onclick="clearSearch()">
+                    <i class="material-icons" style="vertical-align: middle; font-size: 16px;">clear</i>
+                </button>
+            </div>
+            
+            <div class="toolbar-section">
+                <div class="view-modes">
+                    <button class="view-mode active" onclick="setViewMode('formatted')" data-mode="formatted">Formatted</button>
+                    <button class="view-mode" onclick="setViewMode('tree')" data-mode="tree">Tree</button>
+                    <button class="view-mode" onclick="setViewMode('raw')" data-mode="raw">Raw</button>
+                </div>
+                
+                <button class="btn btn-secondary" onclick="toggleCompareMode()">
+                    <i class="material-icons" style="vertical-align: middle; font-size: 16px;">compare_arrows</i>
+                    Compare
+                </button>
+                
+                <button class="btn btn-secondary" onclick="validateSchema()">
+                    <i class="material-icons" style="vertical-align: middle; font-size: 16px;">check_circle</i>
+                    Validate
+                </button>
+                
+                <button class="btn btn-secondary" onclick="toggleTheme()">
+                    <i class="material-icons" style="vertical-align: middle; font-size: 16px;">brightness_6</i>
+                    Theme
+                </button>
+            </div>
+        </div>
+        
+        <div class="content" id="mainContent">
+            <div class="input-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; color: #424242;">Input JSON</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="file" class="file-input" id="fileInput" accept=".json,.txt" onchange="loadFile()">
+                        <button class="btn btn-secondary" onclick="document.getElementById('fileInput').click()">
+                            <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">upload_file</i>
+                            Upload
+                        </button>
+                        <button class="btn btn-secondary" onclick="downloadJson()">
+                            <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">download</i>
+                            Download
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="controls">
+                    <button class="btn" onclick="formatJson()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">refresh</i>
+                        Parse & Format
+                    </button>
+                    <button class="btn btn-secondary" onclick="minifyJson()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">compress</i>
+                        Minify
+                    </button>
+                    <button class="btn btn-secondary" onclick="clearInput()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">clear</i>
+                        Clear
+                    </button>
+                    <button class="btn btn-secondary" onclick="loadSample()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">insert_drive_file</i>
+                        Sample
+                    </button>
+                </div>
+                <textarea 
+                    class="json-input" 
+                    id="jsonInput" 
+                    placeholder="Paste your JSON here or upload a file..."
+                    oninput="formatJson()"
+                ></textarea>
+            </div>
+            
+            <div class="output-panel">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="margin: 0; color: #424242;">Formatted Output</h3>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn btn-secondary" onclick="copyPath()" id="copyPathBtn" style="display: none;">
+                            <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">content_copy</i>
+                            Copy Path
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="jsonPath" class="json-path-display"></div>
+                <div id="stats" class="stats" style="display: none;"></div>
+                <div id="error" class="error" style="display: none;"></div>
+                <div class="controls">
+                    <button class="btn btn-secondary" onclick="expandAll()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">unfold_more</i>
+                        Expand All
+                    </button>
+                    <button class="btn btn-secondary" onclick="collapseAll()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">unfold_less</i>
+                        Collapse All
+                    </button>
+                    <button class="btn btn-secondary" onclick="copyOutput()">
+                        <i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">content_copy</i>
+                        Copy JSON
+                    </button>
+                </div>
+                <div class="json-output" id="jsonOutput">
+                    <div style="text-align: center; color: #999; margin-top: 150px;">
+                        <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">code</i>
+                        <p>Your formatted JSON will appear here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="compare-mode" id="compareMode">
+            <div class="compare-panel">
+                <h3>JSON A</h3>
+                <textarea class="json-input" id="jsonInputA" placeholder="First JSON to compare..."></textarea>
+            </div>
+            <div class="compare-panel">
+                <h3>JSON B</h3>
+                <textarea class="json-input" id="jsonInputB" placeholder="Second JSON to compare..."></textarea>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div id="statusLeft">Ready</div>
+            <div id="statusRight">
+                <span id="cursorInfo"></span>
+                <span style="margin-left: 16px;">JSON Viewer Pro v2.0</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let parsedJson = null;
+        let collapsedPaths = new Set();
+        let currentViewMode = 'formatted';
+        let searchResults = [];
+        let currentPath = '';
+        let isCompareMode = false;
+
+        // Theme management
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+            localStorage.setItem('theme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
+        }
+
+        // Load saved theme
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-theme');
+            }
+        }
+
+        // View mode management
+        function setViewMode(mode) {
+            currentViewMode = mode;
+            document.querySelectorAll('.view-mode').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.mode === mode);
+            });
+            
+            if (parsedJson) {
+                displayJson();
+            }
+        }
+
+        // Compare mode
+        function toggleCompareMode() {
+            isCompareMode = !isCompareMode;
+            document.getElementById('mainContent').style.display = isCompareMode ? 'none' : 'flex';
+            document.getElementById('compareMode').classList.toggle('active', isCompareMode);
+            
+            if (isCompareMode) {
+                document.getElementById('statusLeft').textContent = 'Compare Mode Active';
+            } else {
+                document.getElementById('statusLeft').textContent = 'Ready';
+            }
+        }
+
+        // File upload
+        function loadFile() {
+            const file = document.getElementById('fileInput').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('jsonInput').value = e.target.result;
+                    formatJson();
+                    document.getElementById('statusLeft').textContent = `Loaded: ${file.name}`;
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        // File download
+        function downloadJson() {
+            if (parsedJson) {
+                const formatted = JSON.stringify(parsedJson, null, 2);
+                const blob = new Blob([formatted], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'formatted.json';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        // Minify JSON
+        function minifyJson() {
+            const input = document.getElementById('jsonInput').value.trim();
+            if (input) {
+                try {
+                    const parsed = JSON.parse(input);
+                    document.getElementById('jsonInput').value = JSON.stringify(parsed);
+                    formatJson();
+                } catch (e) {
+                    showError(`Invalid JSON: ${e.message}`);
+                }
+            }
+        }
+
+        // Search functionality
+        function searchJson() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const resultsContainer = document.getElementById('searchResults');
+            
+            if (!query || !parsedJson) {
+                resultsContainer.style.display = 'none';
+                clearHighlights();
+                return;
+            }
+
+            searchResults = [];
+            searchInObject(parsedJson, '', query);
+            
+            if (searchResults.length > 0) {
+                displaySearchResults();
+                highlightSearchResults();
+            } else {
+                resultsContainer.style.display = 'none';
+                clearHighlights();
+            }
+        }
+
+        function searchInObject(obj, path, query) {
+            if (obj === null || obj === undefined) return;
+            
+            if (typeof obj === 'object') {
+                if (Array.isArray(obj)) {
+                    obj.forEach((item, index) => {
+                        const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+                        searchInObject(item, itemPath, query);
+                    });
+                } else {
+                    Object.keys(obj).forEach(key => {
+                        const keyPath = path ? `${path}.${key}` : key;
+                        
+                        // Search in key names
+                        if (key.toLowerCase().includes(query)) {
+                            searchResults.push({
+                                path: keyPath,
+                                type: 'key',
+                                value: key,
+                                fullPath: keyPath
+                            });
+                        }
+                        
+                        searchInObject(obj[key], keyPath, query);
+                    });
+                }
+            } else {
+                // Search in values
+                const strValue = String(obj).toLowerCase();
+                if (strValue.includes(query)) {
+                    searchResults.push({
+                        path: path,
+                        type: 'value',
+                        value: obj,
+                        fullPath: path
+                    });
+                }
+            }
+        }
+
+        function displaySearchResults() {
+            const resultsContainer = document.getElementById('searchResults');
+            const maxResults = 10;
+            
+            resultsContainer.innerHTML = searchResults.slice(0, maxResults).map(result => `
+                <div class="search-result-item" onclick="selectSearchResult('${result.fullPath}')">
+                    <span class="search-result-path">${result.path}</span>
+                    <span class="search-result-value">: ${JSON.stringify(result.value)}</span>
+                </div>
+            `).join('');
+            
+            if (searchResults.length > maxResults) {
+                resultsContainer.innerHTML += `<div class="search-result-item" style="font-style: italic; color: #999;">... and ${searchResults.length - maxResults} more results</div>`;
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        function selectSearchResult(path) {
+            currentPath = path;
+            document.getElementById('jsonPath').textContent = `Path: ${path}`;
+            document.getElementById('jsonPath').style.display = 'block';
+            document.getElementById('copyPathBtn').style.display = 'inline-block';
+            document.getElementById('searchResults').style.display = 'none';
+            
+            // Expand path to make it visible
+            expandPathToTarget(path);
+            formatJson();
+        }
+
+        function expandPathToTarget(targetPath) {
+            const pathParts = targetPath.split(/[\.\[\]]+/).filter(p => p);
+            let currentPath = '';
+            
+            pathParts.forEach((part, index) => {
+                if (index > 0) {
+                    if (targetPath.includes(`[${part}]`)) {
+                        currentPath += `[${part}]`;
+                    } else {
+                        currentPath += currentPath ? `.${part}` : part;
+                    }
+                } else {
+                    currentPath = part;
+                }
+                
+                collapsedPaths.delete(currentPath);
+            });
+        }
+
+        function clearSearch() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchResults').style.display = 'none';
+            clearHighlights();
+        }
+
+        function highlightSearchResults() {
+            // This would need more complex implementation for real highlighting
+            // For now, we'll just ensure the search results are visible
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.highlighted').forEach(el => {
+                el.classList.remove('highlighted');
+            });
+        }
+
+        // Path copying
+        function copyPath() {
+            if (currentPath) {
+                navigator.clipboard.writeText(currentPath).then(() => {
+                    const btn = document.getElementById('copyPathBtn');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">check</i>Copied!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+        }
+
+        // Schema validation
+        function validateSchema() {
+            if (!parsedJson) {
+                showError('No JSON to validate');
+                return;
+            }
+            
+            // Basic validation checks
+            const validation = {
+                isValid: true,
+                errors: [],
+                warnings: []
+            };
+            
+            // Check for common issues
+            validateObject(parsedJson, '', validation);
+            
+            if (validation.isValid) {
+                showSuccess('JSON is valid! No issues found.');
+            } else {
+                showError(`Validation issues found: ${validation.errors.join(', ')}`);
+            }
+        }
+
+        function validateObject(obj, path, validation) {
+            if (typeof obj === 'object' && obj !== null) {
+                if (Array.isArray(obj)) {
+                    // Check for mixed types in arrays
+                    const types = new Set(obj.map(item => typeof item));
+                    if (types.size > 1) {
+                        validation.warnings.push(`Mixed types in array at ${path}`);
+                    }
+                    
+                    obj.forEach((item, index) => {
+                        validateObject(item, `${path}[${index}]`, validation);
+                    });
+                } else {
+                    // Check for very deep nesting
+                    const depth = path.split('.').length;
+                    if (depth > 10) {
+                        validation.warnings.push(`Deep nesting detected at ${path}`);
+                    }
+                    
+                    Object.keys(obj).forEach(key => {
+                        const keyPath = path ? `${path}.${key}` : key;
+                        validateObject(obj[key], keyPath, validation);
+                    });
+                }
+            }
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.style.display = 'block';
+            setTimeout(() => {
+                error.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const stats = document.getElementById('stats');
+            stats.innerHTML = `<span style="color: #4caf50;"><i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">check_circle</i>${message}</span>`;
+            stats.style.display = 'block';
+            setTimeout(() => {
+                if (parsedJson) {
+                    updateStats();
+                }
+            }, 3000);
+        }
+
+        function formatJson() {
+            const input = document.getElementById('jsonInput').value.trim();
+            const output = document.getElementById('jsonOutput');
+            const error = document.getElementById('error');
+            const stats = document.getElementById('stats');
+
+            error.style.display = 'none';
+            stats.style.display = 'none';
+
+            if (!input) {
+                output.innerHTML = `
+                    <div style="text-align: center; color: #999; margin-top: 150px;">
+                        <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">code</i>
+                        <p>Your formatted JSON will appear here</p>
+                    </div>
+                `;
+                document.getElementById('statusLeft').textContent = 'Ready';
+                return;
+            }
+
+            try {
+                parsedJson = JSON.parse(input);
+                updateStats();
+                displayJson();
+                document.getElementById('statusLeft').textContent = 'JSON parsed successfully';
+            } catch (e) {
+                showError(`Invalid JSON: ${e.message}`);
+                output.innerHTML = `
+                    <div style="text-align: center; color: #d32f2f; margin-top: 150px;">
+                        <i class="material-icons" style="font-size: 48px; margin-bottom: 16px;">error</i>
+                        <p>Invalid JSON format</p>
+                    </div>
+                `;
+                document.getElementById('statusLeft').textContent = 'JSON parsing failed';
+            }
+        }
+
+        function displayJson() {
+            const output = document.getElementById('jsonOutput');
+            
+            switch (currentViewMode) {
+                case 'formatted':
+                    output.innerHTML = renderJson(parsedJson, '');
+                    attachToggleListeners();
+                    break;
+                case 'tree':
+                    output.innerHTML = renderTreeView(parsedJson, '');
+                    break;
+                case 'raw':
+                    output.innerHTML = `<div class="json-raw-view">${escapeHtml(JSON.stringify(parsedJson, null, 2))}</div>`;
+                    break;
+            }
+        }
+
+        function renderTreeView(obj, path, indent = 0) {
+            if (obj === null) return `<span class="json-null">null</span>`;
+            if (typeof obj !== 'object') return renderJson(obj, path);
+            
+            const spaces = '  '.repeat(indent);
+            let html = '';
+            
+            if (Array.isArray(obj)) {
+                html += `<div class="tree-node">${spaces}Array (${obj.length} items)</div>`;
+                obj.forEach((item, index) => {
+                    html += `<div class="tree-node">${spaces}  [${index}]: ${renderTreeView(item, `${path}[${index}]`, indent + 1)}</div>`;
+                });
+            } else {
+                const keys = Object.keys(obj);
+                html += `<div class="tree-node">${spaces}Object (${keys.length} keys)</div>`;
+                keys.forEach(key => {
+                    const keyPath = path ? `${path}.${key}` : key;
+                    html += `<div class="tree-node">${spaces}  ${key}: ${renderTreeView(obj[key], keyPath, indent + 1)}</div>`;
+                });
+            }
+            
+            return html;
+        }
+
+        function updateStats() {
+            if (!parsedJson) return;
+            
+            const jsonString = JSON.stringify(parsedJson);
+            const size = new Blob([jsonString]).size;
+            const lines = jsonString.split('\n').length;
+            const keys = countKeys(parsedJson);
+            const depth = getMaxDepth(parsedJson);
+            const arrays = countArrays(parsedJson);
+            const objects = countObjects(parsedJson);
+            
+            const stats = document.getElementById('stats');
+            stats.innerHTML = `
+                <strong>Statistics:</strong> 
+                ${formatBytes(size)} | 
+                ${lines} lines | 
+                ${keys} keys | 
+                ${depth} max depth | 
+                ${arrays} arrays | 
+                ${objects} objects
+            `;
+            stats.style.display = 'block';
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+        }
+
+        function getMaxDepth(obj, depth = 0) {
+            if (typeof obj !== 'object' || obj === null) return depth;
+            
+            if (Array.isArray(obj)) {
+                return Math.max(...obj.map(item => getMaxDepth(item, depth + 1)));
+            } else {
+                return Math.max(...Object.values(obj).map(value => getMaxDepth(value, depth + 1)));
+            }
+        }
+
+        function countArrays(obj) {
+            let count = 0;
+            if (Array.isArray(obj)) {
+                count = 1;
+                for (let item of obj) {
+                    count += countArrays(item);
+                }
+            } else if (typeof obj === 'object' && obj !== null) {
+                for (let key in obj) {
+                    count += countArrays(obj[key]);
+                }
+            }
+            return count;
+        }
+
+        function countObjects(obj) {
+            let count = 0;
+            if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+                count = 1;
+                for (let key in obj) {
+                    count += countObjects(obj[key]);
+                }
+            } else if (Array.isArray(obj)) {
+                for (let item of obj) {
+                    count += countObjects(item);
+                }
+            }
+            return count;
+        }
+
+        function countKeys(obj, count = 0) {
+            if (typeof obj === 'object' && obj !== null) {
+                if (Array.isArray(obj)) {
+                    for (let item of obj) {
+                        count = countKeys(item, count);
+                    }
+                } else {
+                    count += Object.keys(obj).length;
+                    for (let key in obj) {
+                        count = countKeys(obj[key], count);
+                    }
+                }
+            }
+            return count;
+        }
+
+        function renderJson(obj, path = '', indent = 0) {
+            const spaces = '  '.repeat(indent);
+            
+            if (obj === null) {
+                return `<span class="json-null">null</span>`;
+            }
+            
+            if (typeof obj === 'string') {
+                return `<span class="json-string">"${escapeHtml(obj)}"</span>`;
+            }
+            
+            if (typeof obj === 'number') {
+                return `<span class="json-number">${obj}</span>`;
+            }
+            
+            if (typeof obj === 'boolean') {
+                return `<span class="json-boolean">${obj}</span>`;
+            }
+            
+            if (Array.isArray(obj)) {
+                if (obj.length === 0) {
+                    return '<span class="json-bracket">[]</span>';
+                }
+                
+                const isCollapsed = collapsedPaths.has(path);
+                const toggleIcon = isCollapsed ? '▶' : '▼';
+                
+                let html = `<span class="collapsible" data-path="${path}" onmouseover="showPath('${path}')">
+                    <span class="toggle-icon ${isCollapsed ? 'collapsed' : ''}">${toggleIcon}</span>
+                    <span class="json-bracket">[</span>
+                </span>`;
+                
+                if (!isCollapsed) {
+                    html += '\n';
+                    for (let i = 0; i < obj.length; i++) {
+                        const itemPath = `${path}[${i}]`;
+                        html += `${spaces}  ${renderJson(obj[i], itemPath, indent + 1)}`;
+                        if (i < obj.length - 1) html += ',';
+                        html += '\n';
+                    }
+                    html += `${spaces}<span class="json-bracket">]</span>`;
+                } else {
+                    html += ` <span style="color: #999;">... ${obj.length} items</span> <span class="json-bracket">]</span>`;
+                }
+                
+                return html;
+            }
+            
+            if (typeof obj === 'object') {
+                const keys = Object.keys(obj);
+                if (keys.length === 0) {
+                    return '<span class="json-bracket">{}</span>';
+                }
+                
+                const isCollapsed = collapsedPaths.has(path);
+                const toggleIcon = isCollapsed ? '▶' : '▼';
+                
+                let html = `<span class="collapsible" data-path="${path}" onmouseover="showPath('${path}')">
+                    <span class="toggle-icon ${isCollapsed ? 'collapsed' : ''}">${toggleIcon}</span>
+                    <span class="json-bracket">{</span>
+                </span>`;
+                
+                if (!isCollapsed) {
+                    html += '\n';
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const keyPath = path ? `${path}.${key}` : key;
+                        html += `${spaces}  <span class="json-key" onmouseover="showPath('${keyPath}')" onclick="selectPath('${keyPath}')">"${escapeHtml(key)}"</span>: ${renderJson(obj[key], keyPath, indent + 1)}`;
+                        if (i < keys.length - 1) html += ',';
+                        html += '\n';
+                    }
+                    html += `${spaces}<span class="json-bracket">}</span>`;
+                } else {
+                    html += ` <span style="color: #999;">... ${keys.length} keys</span> <span class="json-bracket">}</span>`;
+                }
+                
+                return html;
+            }
+            
+            return String(obj);
+        }
+
+        function showPath(path) {
+            if (path) {
+                document.getElementById('jsonPath').textContent = `Path: ${path}`;
+                document.getElementById('jsonPath').style.display = 'block';
+            }
+        }
+
+        function selectPath(path) {
+            currentPath = path;
+            document.getElementById('copyPathBtn').style.display = 'inline-block';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function attachToggleListeners() {
+            document.querySelectorAll('.collapsible').forEach(element => {
+                element.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const path = this.getAttribute('data-path');
+                    
+                    if (collapsedPaths.has(path)) {
+                        collapsedPaths.delete(path);
+                    } else {
+                        collapsedPaths.add(path);
+                    }
+                    
+                    displayJson();
+                });
+            });
+        }
+
+        function clearInput() {
+            document.getElementById('jsonInput').value = '';
+            formatJson();
+        }
+
+        function loadSample() {
+            const sample = {
+                "name": "John Doe",
+                "age": 30,
+                "isActive": true,
+                "address": {
+                    "street": "123 Main St",
+                    "city": "New York",
+                    "zipCode": "10001",
+                    "coordinates": {
+                        "lat": 40.7128,
+                        "lng": -74.0060
+                    }
+                },
+                "hobbies": ["reading", "coding", "traveling", "photography"],
+                "skills": [
+                    {
+                        "name": "JavaScript",
+                        "level": "Expert",
+                        "years": 5,
+                        "certifications": ["AWS", "Google Cloud"]
+                    },
+                    {
+                        "name": "Python",
+                        "level": "Intermediate",
+                        "years": 3,
+                        "frameworks": ["Django", "Flask", "FastAPI"]
+                    }
+                ],
+                "contact": {
+                    "email": "john.doe@example.com",
+                    "phone": "+1-555-0123",
+                    "social": {
+                        "twitter": "@johndoe",
+                        "linkedin": "linkedin.com/in/johndoe",
+                        "github": "github.com/johndoe"
+                    }
+                },
+                "projects": [
+                    {
+                        "name": "JSON Viewer Pro",
+                        "description": "Advanced JSON viewer with search and validation",
+                        "technologies": ["HTML", "CSS", "JavaScript"],
+                        "status": "completed",
+                        "metrics": {
+                            "linesOfCode": 1500,
+                            "testCoverage": 95.5,
+                            "performance": "excellent"
+                        }
+                    }
+                ],
+                "preferences": {
+                    "theme": "dark",
+                    "notifications": true,
+                    "language": "en-US",
+                    "timezone": "America/New_York"
+                },
+                "metadata": {
+                    "createdAt": "2024-01-15T10:30:00Z",
+                    "updatedAt": "2024-06-26T14:45:00Z",
+                    "version": "2.1.0",
+                    "tags": ["developer", "javascript", "full-stack"]
+                }
+            };
+            
+            document.getElementById('jsonInput').value = JSON.stringify(sample, null, 2);
+            formatJson();
+        }
+
+        function expandAll() {
+            collapsedPaths.clear();
+            displayJson();
+        }
+
+        function collapseAll() {
+            if (parsedJson) {
+                collectAllPaths(parsedJson, '');
+                displayJson();
+            }
+        }
+
+        function collectAllPaths(obj, path) {
+            if (typeof obj === 'object' && obj !== null) {
+                if (path) collapsedPaths.add(path);
+                
+                if (Array.isArray(obj)) {
+                    for (let i = 0; i < obj.length; i++) {
+                        collectAllPaths(obj[i], `${path}[${i}]`);
+                    }
+                } else {
+                    for (let key in obj) {
+                        const keyPath = path ? `${path}.${key}` : key;
+                        collectAllPaths(obj[key], keyPath);
+                    }
+                }
+            }
+        }
+
+        function copyOutput() {
+            if (parsedJson) {
+                const formattedJson = JSON.stringify(parsedJson, null, 2);
+                navigator.clipboard.writeText(formattedJson).then(() => {
+                    const btn = event.target.closest('button');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = '<i class="material-icons" style="vertical-align: middle; font-size: 16px; margin-right: 4px;">check</i>Copied!';
+                    setTimeout(() => {
+                        btn.innerHTML = originalText;
+                    }, 2000);
+                });
+            }
+        }
+
+        // Initialize application
+        window.addEventListener('load', () => {
+            loadTheme();
+            loadSample();
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch (e.key) {
+                        case 'f':
+                            e.preventDefault();
+                            document.getElementById('searchInput').focus();
+                            break;
+                        case 's':
+                            e.preventDefault();
+                            downloadJson();
+                            break;
+                        case 'Enter':
+                            if (e.target === document.getElementById('jsonInput')) {
+                                formatJson();
+                            }
+                            break;
+                    }
+                }
+            });
+            
+            // Hide search results when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.search-container')) {
+                    document.getElementById('searchResults').style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
