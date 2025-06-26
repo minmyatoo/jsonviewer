@@ -873,80 +873,382 @@
                 </div>
             </div>
 
-            <!-- Other tabs (placeholder content) -->
+            <!-- Validator Tab -->
             <div id="validator-tab" class="tab-content hidden">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i class="material-icons">verified</i>
-                            JSON Validator
-                        </h2>
-                    </div>
-                    <div class="panel-content">
-                        <p>JSON validation features coming soon...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="formatter-tab" class="tab-content hidden">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i class="material-icons">code</i>
-                            JSON Formatter
-                        </h2>
-                    </div>
-                    <div class="panel-content">
-                        <p>Advanced formatting options coming soon...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="converter-tab" class="tab-content hidden">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i class="material-icons">transform</i>
-                            Format Converter
-                        </h2>
-                    </div>
-                    <div class="panel-content">
-                        <p>Convert between JSON, XML, CSV, and other formats...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="schema-tab" class="tab-content hidden">
-                <div class="panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title">
-                            <i class="material-icons">schema</i>
-                            Schema Generator
-                        </h2>
-                    </div>
-                    <div class="panel-content">
-                        <p>Generate and validate JSON schemas...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="compare-tab" class="tab-content hidden">
                 <div class="content-grid">
                     <div class="panel">
                         <div class="panel-header">
-                            <h2 class="panel-title">JSON A</h2>
+                            <h2 class="panel-title">
+                                <i class="material-icons">verified</i>
+                                JSON Validator
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" onclick="validateJsonAdvanced()">
+                                    <i class="material-icons">check_circle</i>
+                                    Validate
+                                </button>
+                            </div>
                         </div>
                         <div class="panel-content">
-                            <textarea class="input textarea" placeholder="First JSON to compare..."></textarea>
+                            <div class="input-group">
+                                <label class="input-label">JSON to Validate</label>
+                                <textarea class="input textarea" id="validatorInput" placeholder="Paste JSON here for validation..."></textarea>
+                            </div>
+                            <div class="toolbar">
+                                <button class="btn btn-sm btn-secondary" onclick="loadFromEditor('validator')">
+                                    <i class="material-icons">input</i>
+                                    Load from Editor
+                                </button>
+                                <button class="btn btn-sm btn-secondary" onclick="clearValidatorInput()">
+                                    <i class="material-icons">clear</i>
+                                    Clear
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="panel">
                         <div class="panel-header">
-                            <h2 class="panel-title">JSON B</h2>
+                            <h2 class="panel-title">
+                                <i class="material-icons">report</i>
+                                Validation Results
+                            </h2>
                         </div>
                         <div class="panel-content">
-                            <textarea class="input textarea" placeholder="Second JSON to compare..."></textarea>
+                            <div id="validationResults" class="json-viewer">
+                                <div class="loading">
+                                    <i class="material-icons" style="font-size: 3rem; color: var(--text-tertiary);">verified</i>
+                                    <p>Validation results will appear here</p>
+                                </div>
+                            </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formatter Tab -->
+            <div id="formatter-tab" class="tab-content hidden">
+                <div class="content-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">code</i>
+                                JSON Formatter
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" onclick="applyCustomFormat()">
+                                    <i class="material-icons">auto_fix_high</i>
+                                    Apply Format
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="input-group">
+                                <label class="input-label">JSON Input</label>
+                                <textarea class="input textarea" id="formatterInput" placeholder="Paste JSON here for custom formatting..."></textarea>
+                            </div>
+                            <div class="toolbar">
+                                <button class="btn btn-sm btn-secondary" onclick="loadFromEditor('formatter')">
+                                    <i class="material-icons">input</i>
+                                    Load from Editor
+                                </button>
+                            </div>
+                            
+                            <!-- Formatting Options -->
+                            <div style="margin-top: 1rem;">
+                                <h3 style="margin-bottom: 1rem; font-size: 1rem;">Formatting Options</h3>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                                    <div class="input-group">
+                                        <label class="input-label">Indentation</label>
+                                        <select class="input" id="indentOption">
+                                            <option value="2">2 spaces</option>
+                                            <option value="4">4 spaces</option>
+                                            <option value="tab">Tab</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Sort Keys</label>
+                                        <select class="input" id="sortKeysOption">
+                                            <option value="false">No sorting</option>
+                                            <option value="true">Alphabetical</option>
+                                            <option value="reverse">Reverse alphabetical</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="removeEmptyOption"> Remove empty values
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="checkbox" id="compactArraysOption"> Compact arrays
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">preview</i>
+                                Formatted Output
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-icon btn-ghost" onclick="copyFormattedOutput(this)">
+                                    <i class="material-icons">content_copy</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="json-viewer" id="formattedOutput">
+                                <div class="loading">
+                                    <i class="material-icons" style="font-size: 3rem; color: var(--text-tertiary);">auto_fix_high</i>
+                                    <p>Formatted JSON will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Converter Tab -->
+            <div id="converter-tab" class="tab-content hidden">
+                <div class="content-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">transform</i>
+                                Format Converter
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" onclick="convertFormat()">
+                                    <i class="material-icons">sync_alt</i>
+                                    Convert
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="input-group">
+                                <label class="input-label">Input Data</label>
+                                <textarea class="input textarea" id="converterInput" placeholder="Paste your data here..."></textarea>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                <div class="input-group">
+                                    <label class="input-label">From Format</label>
+                                    <select class="input" id="fromFormat">
+                                        <option value="json">JSON</option>
+                                        <option value="csv">CSV</option>
+                                        <option value="xml">XML</option>
+                                        <option value="yaml">YAML</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">To Format</label>
+                                    <select class="input" id="toFormat">
+                                        <option value="json">JSON</option>
+                                        <option value="csv">CSV</option>
+                                        <option value="xml">XML</option>
+                                        <option value="yaml">YAML</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="toolbar">
+                                <button class="btn btn-sm btn-secondary" onclick="loadFromEditor('converter')">
+                                    <i class="material-icons">input</i>
+                                    Load from Editor
+                                </button>
+                                <button class="btn btn-sm btn-secondary" onclick="loadConverterSample()">
+                                    <i class="material-icons">snippet_folder</i>
+                                    Load Sample
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">output</i>
+                                Converted Output
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-icon btn-ghost" onclick="copyConvertedOutput(this)">
+                                    <i class="material-icons">content_copy</i>
+                                </button>
+                                <button class="btn btn-icon btn-ghost" onclick="downloadConverted()">
+                                    <i class="material-icons">download</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="json-viewer" id="convertedOutput">
+                                <div class="loading">
+                                    <i class="material-icons" style="font-size: 3rem; color: var(--text-tertiary);">transform</i>
+                                    <p>Converted data will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Schema Tab -->
+            <div id="schema-tab" class="tab-content hidden">
+                <div class="content-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">schema</i>
+                                Schema Generator
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-primary" onclick="generateSchema()">
+                                    <i class="material-icons">auto_awesome</i>
+                                    Generate Schema
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="tab-container">
+                                <div class="tab-list">
+                                    <button class="tab-button active" onclick="setSchemaMode('generate')" data-schema="generate">Generate</button>
+                                    <button class="tab-button" onclick="setSchemaMode('validate')" data-schema="validate">Validate</button>
+                                </div>
+                            </div>
+                            
+                            <div id="generateSchemaPanel">
+                                <div class="input-group">
+                                    <label class="input-label">JSON Data</label>
+                                    <textarea class="input textarea" id="schemaInput" placeholder="Paste JSON to generate schema..."></textarea>
+                                </div>
+                                <div class="toolbar">
+                                    <button class="btn btn-sm btn-secondary" onclick="loadFromEditor('schema')">
+                                        <i class="material-icons">input</i>
+                                        Load from Editor
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div id="validateSchemaPanel" class="hidden">
+                                <div class="input-group">
+                                    <label class="input-label">JSON Schema</label>
+                                    <textarea class="input" id="schemaDefinition" style="height: 150px;" placeholder="Paste JSON schema here..."></textarea>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">JSON Data to Validate</label>
+                                    <textarea class="input" id="dataToValidate" style="height: 150px;" placeholder="Paste JSON data to validate..."></textarea>
+                                </div>
+                                <button class="btn btn-primary" onclick="validateAgainstSchema()">
+                                    <i class="material-icons">rule</i>
+                                    Validate Against Schema
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">description</i>
+                                Schema Output
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-icon btn-ghost" onclick="copySchemaOutput(this)">
+                                    <i class="material-icons">content_copy</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <div class="json-viewer" id="schemaOutput">
+                                <div class="loading">
+                                    <i class="material-icons" style="font-size: 3rem; color: var(--text-tertiary);">schema</i>
+                                    <p>Generated schema will appear here</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Compare Tab -->
+            <div id="compare-tab" class="tab-content hidden">
+                <div style="margin-bottom: 1rem;">
+                    <div class="toolbar">
+                        <button class="btn btn-primary" onclick="compareJsons()">
+                            <i class="material-icons">compare_arrows</i>
+                            Compare
+                        </button>
+                        <button class="btn btn-secondary" onclick="clearComparison()">
+                            <i class="material-icons">clear</i>
+                            Clear
+                        </button>
+                        <button class="btn btn-secondary" onclick="swapComparison()">
+                            <i class="material-icons">swap_horiz</i>
+                            Swap
+                        </button>
+                        <div style="margin-left: auto; display: flex; gap: 0.5rem;">
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="ignoreOrderOption" checked> Ignore Array Order
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="checkbox" id="ignoreTypeOption"> Ignore Type Differences
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="content-grid">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">description</i>
+                                JSON A (Left)
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-icon btn-ghost" onclick="loadFromEditor('compareA')">
+                                    <i class="material-icons">input</i>
+                                </button>
+                                <button class="btn btn-icon btn-ghost" onclick="loadComparisonSample('A')">
+                                    <i class="material-icons">snippet_folder</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <textarea class="input textarea" id="compareInputA" placeholder="First JSON to compare..."></textarea>
+                        </div>
+                    </div>
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h2 class="panel-title">
+                                <i class="material-icons">description</i>
+                                JSON B (Right)
+                            </h2>
+                            <div class="panel-actions">
+                                <button class="btn btn-icon btn-ghost" onclick="loadFromEditor('compareB')">
+                                    <i class="material-icons">input</i>
+                                </button>
+                                <button class="btn btn-icon btn-ghost" onclick="loadComparisonSample('B')">
+                                    <i class="material-icons">snippet_folder</i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="panel-content">
+                            <textarea class="input textarea" id="compareInputB" placeholder="Second JSON to compare..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Comparison Results -->
+                <div class="panel" id="comparisonResults" style="margin-top: 2rem; display: none;">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <i class="material-icons">difference</i>
+                            Comparison Results
+                        </h2>
+                        <div class="panel-actions">
+                            <button class="btn btn-icon btn-ghost" onclick="exportDiff()">
+                                <i class="material-icons">download</i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div id="diffSummary" style="margin-bottom: 1rem;"></div>
+                        <div class="json-viewer" id="diffOutput"></div>
                     </div>
                 </div>
             </div>
@@ -1485,8 +1787,70 @@
         // Search functionality
         function searchJson() {
             const query = document.getElementById('searchInput').value.toLowerCase();
-            // Implementation for search would go here
-            // This is a placeholder for the search functionality
+            if (!query || !state.parsedJson) {
+                clearSearchHighlights();
+                return;
+            }
+
+            state.searchResults = [];
+            searchInObject(state.parsedJson, '', query);
+            highlightSearchResults();
+            
+            if (state.searchResults.length > 0) {
+                showNotification(`Found ${state.searchResults.length} matches`, 'success');
+            } else {
+                showNotification('No matches found', 'error');
+            }
+        }
+
+        function searchInObject(obj, path, query) {
+            if (obj === null || obj === undefined) return;
+            
+            if (typeof obj === 'object') {
+                if (Array.isArray(obj)) {
+                    obj.forEach((item, index) => {
+                        const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+                        searchInObject(item, itemPath, query);
+                    });
+                } else {
+                    Object.keys(obj).forEach(key => {
+                        const keyPath = path ? `${path}.${key}` : key;
+                        
+                        // Search in key names
+                        if (key.toLowerCase().includes(query)) {
+                            state.searchResults.push({
+                                path: keyPath,
+                                type: 'key',
+                                value: key
+                            });
+                        }
+                        
+                        searchInObject(obj[key], keyPath, query);
+                    });
+                }
+            } else {
+                // Search in values
+                const strValue = String(obj).toLowerCase();
+                if (strValue.includes(query)) {
+                    state.searchResults.push({
+                        path: path,
+                        type: 'value',
+                        value: obj
+                    });
+                }
+            }
+        }
+
+        function highlightSearchResults() {
+            clearSearchHighlights();
+            // Add highlighting to the JSON viewer
+            // This would require more complex DOM manipulation for full implementation
+        }
+
+        function clearSearchHighlights() {
+            document.querySelectorAll('.search-highlight').forEach(el => {
+                el.classList.remove('search-highlight');
+            });
         }
 
         // History management
@@ -1601,6 +1965,1105 @@
 
         function openSettings() {
             showNotification('Settings panel coming soon!', 'success');
+        }
+
+        // ===========================================
+        // VALIDATOR FUNCTIONS
+        // ===========================================
+        
+        function validateJsonAdvanced() {
+            const input = document.getElementById('validatorInput').value.trim();
+            const resultsContainer = document.getElementById('validationResults');
+            
+            if (!input) {
+                resultsContainer.innerHTML = '<p style="color: var(--error);">No JSON provided for validation</p>';
+                return;
+            }
+
+            const validation = {
+                isValid: true,
+                errors: [],
+                warnings: [],
+                info: []
+            };
+
+            try {
+                const parsed = JSON.parse(input);
+                
+                // Perform detailed validation
+                validateJsonStructure(parsed, '', validation);
+                
+                // Display results
+                displayValidationResults(validation, parsed);
+                
+            } catch (error) {
+                validation.isValid = false;
+                validation.errors.push({
+                    type: 'Syntax Error',
+                    message: error.message,
+                    line: getErrorLine(error.message)
+                });
+                displayValidationResults(validation);
+            }
+        }
+
+        function validateJsonStructure(obj, path, validation) {
+            if (typeof obj === 'object' && obj !== null) {
+                // Check for circular references
+                try {
+                    JSON.stringify(obj);
+                } catch (e) {
+                    validation.errors.push({
+                        type: 'Circular Reference',
+                        message: 'Circular reference detected',
+                        path: path
+                    });
+                }
+
+                if (Array.isArray(obj)) {
+                    // Check array consistency
+                    if (obj.length > 0) {
+                        const types = new Set(obj.map(item => typeof item));
+                        if (types.size > 2) {
+                            validation.warnings.push({
+                                type: 'Mixed Types',
+                                message: 'Array contains multiple data types',
+                                path: path
+                            });
+                        }
+                    }
+                    
+                    obj.forEach((item, index) => {
+                        validateJsonStructure(item, `${path}[${index}]`, validation);
+                    });
+                } else {
+                    // Check object structure
+                    const keys = Object.keys(obj);
+                    
+                    // Check for very deep nesting
+                    const depth = path.split('.').length;
+                    if (depth > 15) {
+                        validation.warnings.push({
+                            type: 'Deep Nesting',
+                            message: 'Very deep object nesting detected',
+                            path: path
+                        });
+                    }
+                    
+                    // Check for empty objects
+                    if (keys.length === 0) {
+                        validation.info.push({
+                            type: 'Empty Object',
+                            message: 'Empty object found',
+                            path: path
+                        });
+                    }
+                    
+                    // Check for potential issues with key names
+                    keys.forEach(key => {
+                        if (key.includes(' ')) {
+                            validation.warnings.push({
+                                type: 'Key Format',
+                                message: 'Key contains spaces',
+                                path: `${path}.${key}`
+                            });
+                        }
+                        
+                        validateJsonStructure(obj[key], path ? `${path}.${key}` : key, validation);
+                    });
+                }
+            }
+        }
+
+        function displayValidationResults(validation, parsed = null) {
+            const container = document.getElementById('validationResults');
+            let html = '';
+            
+            if (validation.isValid && validation.errors.length === 0) {
+                html = `
+                    <div style="color: var(--success); padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: var(--radius); margin-bottom: 1rem;">
+                        <h3 style="margin: 0 0 0.5rem 0;"><i class="material-icons" style="vertical-align: middle;">check_circle</i> Valid JSON</h3>
+                        <p style="margin: 0;">The JSON is syntactically correct and well-formed.</p>
+                    </div>
+                `;
+                
+                if (parsed) {
+                    const stats = {
+                        size: new Blob([JSON.stringify(parsed)]).size,
+                        keys: countKeys(parsed),
+                        depth: getMaxDepth(parsed),
+                        arrays: countArrays(parsed),
+                        objects: countObjects(parsed)
+                    };
+                    
+                    html += `
+                        <div style="background: var(--surface-2); padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
+                            <h4>JSON Statistics</h4>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem;">
+                                <div>Size: ${formatBytes(stats.size)}</div>
+                                <div>Keys: ${stats.keys}</div>
+                                <div>Max Depth: ${stats.depth}</div>
+                                <div>Arrays: ${stats.arrays}</div>
+                                <div>Objects: ${stats.objects}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            }
+            
+            if (validation.errors.length > 0) {
+                html += '<div style="color: var(--error); margin-bottom: 1rem;"><h3><i class="material-icons" style="vertical-align: middle;">error</i> Errors</h3>';
+                validation.errors.forEach(error => {
+                    html += `<div style="padding: 0.5rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                        <strong>${error.type}:</strong> ${error.message}
+                        ${error.path ? `<br><small>Path: ${error.path}</small>` : ''}
+                        ${error.line ? `<br><small>Line: ${error.line}</small>` : ''}
+                    </div>`;
+                });
+                html += '</div>';
+            }
+            
+            if (validation.warnings.length > 0) {
+                html += '<div style="color: var(--warning); margin-bottom: 1rem;"><h3><i class="material-icons" style="vertical-align: middle;">warning</i> Warnings</h3>';
+                validation.warnings.forEach(warning => {
+                    html += `<div style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                        <strong>${warning.type}:</strong> ${warning.message}
+                        ${warning.path ? `<br><small>Path: ${warning.path}</small>` : ''}
+                    </div>`;
+                });
+                html += '</div>';
+            }
+            
+            if (validation.info.length > 0) {
+                html += '<div style="color: var(--text-secondary); margin-bottom: 1rem;"><h3><i class="material-icons" style="vertical-align: middle;">info</i> Information</h3>';
+                validation.info.forEach(info => {
+                    html += `<div style="padding: 0.5rem; background: var(--surface-2); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                        <strong>${info.type}:</strong> ${info.message}
+                        ${info.path ? `<br><small>Path: ${info.path}</small>` : ''}
+                    </div>`;
+                });
+                html += '</div>';
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function getErrorLine(errorMessage) {
+            const match = errorMessage.match(/position (\d+)/);
+            return match ? match[1] : null;
+        }
+
+        function loadFromEditor(target) {
+            const editorValue = document.getElementById('jsonInput').value;
+            if (!editorValue) {
+                showNotification('No data in editor to load', 'error');
+                return;
+            }
+            
+            switch (target) {
+                case 'validator':
+                    document.getElementById('validatorInput').value = editorValue;
+                    break;
+                case 'formatter':
+                    document.getElementById('formatterInput').value = editorValue;
+                    break;
+                case 'converter':
+                    document.getElementById('converterInput').value = editorValue;
+                    break;
+                case 'schema':
+                    document.getElementById('schemaInput').value = editorValue;
+                    break;
+                case 'compareA':
+                    document.getElementById('compareInputA').value = editorValue;
+                    break;
+                case 'compareB':
+                    document.getElementById('compareInputB').value = editorValue;
+                    break;
+            }
+            showNotification('Data loaded from editor', 'success');
+        }
+
+        function clearValidatorInput() {
+            document.getElementById('validatorInput').value = '';
+            document.getElementById('validationResults').innerHTML = `
+                <div class="loading">
+                    <i class="material-icons" style="font-size: 3rem; color: var(--text-tertiary);">verified</i>
+                    <p>Validation results will appear here</p>
+                </div>
+            `;
+        }
+
+        // ===========================================
+        // FORMATTER FUNCTIONS
+        // ===========================================
+        
+        function applyCustomFormat() {
+            const input = document.getElementById('formatterInput').value.trim();
+            const outputContainer = document.getElementById('formattedOutput');
+            
+            if (!input) {
+                outputContainer.innerHTML = '<p style="color: var(--error);">No JSON provided for formatting</p>';
+                return;
+            }
+
+            try {
+                let parsed = JSON.parse(input);
+                
+                // Apply formatting options
+                const indent = document.getElementById('indentOption').value;
+                const sortKeys = document.getElementById('sortKeysOption').value;
+                const removeEmpty = document.getElementById('removeEmptyOption').checked;
+                const compactArrays = document.getElementById('compactArraysOption').checked;
+                
+                // Process the JSON based on options
+                if (removeEmpty) {
+                    parsed = removeEmptyValues(parsed);
+                }
+                
+                if (sortKeys !== 'false') {
+                    parsed = sortObjectKeys(parsed, sortKeys === 'reverse');
+                }
+                
+                // Format with custom indentation
+                let indentValue = indent === 'tab' ? '\t' : parseInt(indent);
+                let formatted = JSON.stringify(parsed, null, indentValue);
+                
+                if (compactArrays) {
+                    formatted = compactSimpleArrays(formatted);
+                }
+                
+                outputContainer.innerHTML = `<pre style="margin: 0; white-space: pre-wrap;">${escapeHtml(formatted)}</pre>`;
+                
+            } catch (error) {
+                outputContainer.innerHTML = `<p style="color: var(--error);">Invalid JSON: ${error.message}</p>`;
+            }
+        }
+
+        function removeEmptyValues(obj) {
+            if (Array.isArray(obj)) {
+                return obj.map(removeEmptyValues).filter(item => 
+                    item !== null && item !== undefined && item !== '' && 
+                    !(Array.isArray(item) && item.length === 0) &&
+                    !(typeof item === 'object' && Object.keys(item).length === 0)
+                );
+            } else if (typeof obj === 'object' && obj !== null) {
+                const cleaned = {};
+                Object.keys(obj).forEach(key => {
+                    const value = removeEmptyValues(obj[key]);
+                    if (value !== null && value !== undefined && value !== '' && 
+                        !(Array.isArray(value) && value.length === 0) &&
+                        !(typeof value === 'object' && Object.keys(value).length === 0)) {
+                        cleaned[key] = value;
+                    }
+                });
+                return cleaned;
+            }
+            return obj;
+        }
+
+        function sortObjectKeys(obj, reverse = false) {
+            if (Array.isArray(obj)) {
+                return obj.map(item => sortObjectKeys(item, reverse));
+            } else if (typeof obj === 'object' && obj !== null) {
+                const sorted = {};
+                const keys = Object.keys(obj).sort();
+                if (reverse) keys.reverse();
+                
+                keys.forEach(key => {
+                    sorted[key] = sortObjectKeys(obj[key], reverse);
+                });
+                return sorted;
+            }
+            return obj;
+        }
+
+        function compactSimpleArrays(jsonString) {
+            // Compact arrays with only primitive values
+            return jsonString.replace(/\[\s*([^[\]{}]*?)\s*\]/g, (match, content) => {
+                if (!content.includes('{') && !content.includes('[')) {
+                    return '[' + content.replace(/\s+/g, ' ').trim() + ']';
+                }
+                return match;
+            });
+        }
+
+        function copyFormattedOutput(btn) {
+            const output = document.getElementById('formattedOutput').textContent;
+            if (output) {
+                navigator.clipboard.writeText(output).then(() => {
+                    const originalContent = btn.innerHTML;
+                    btn.innerHTML = '<i class="material-icons">check</i>';
+                    setTimeout(() => btn.innerHTML = originalContent, 2000);
+                    showNotification('Formatted JSON copied', 'success');
+                });
+            }
+        }
+
+        // ===========================================
+        // CONVERTER FUNCTIONS
+        // ===========================================
+        
+        function convertFormat() {
+            const input = document.getElementById('converterInput').value.trim();
+            const fromFormat = document.getElementById('fromFormat').value;
+            const toFormat = document.getElementById('toFormat').value;
+            const outputContainer = document.getElementById('convertedOutput');
+            
+            if (!input) {
+                outputContainer.innerHTML = '<p style="color: var(--error);">No data provided for conversion</p>';
+                return;
+            }
+
+            try {
+                let data;
+                
+                // Parse input based on format
+                switch (fromFormat) {
+                    case 'json':
+                        data = JSON.parse(input);
+                        break;
+                    case 'csv':
+                        data = parseCSV(input);
+                        break;
+                    case 'xml':
+                        data = parseXML(input);
+                        break;
+                    case 'yaml':
+                        data = parseYAML(input);
+                        break;
+                    default:
+                        throw new Error('Unsupported input format');
+                }
+                
+                // Convert to output format
+                let output;
+                switch (toFormat) {
+                    case 'json':
+                        output = JSON.stringify(data, null, 2);
+                        break;
+                    case 'csv':
+                        output = convertToCSV(data);
+                        break;
+                    case 'xml':
+                        output = convertToXML(data);
+                        break;
+                    case 'yaml':
+                        output = convertToYAML(data);
+                        break;
+                    default:
+                        throw new Error('Unsupported output format');
+                }
+                
+                outputContainer.innerHTML = `<pre style="margin: 0; white-space: pre-wrap;">${escapeHtml(output)}</pre>`;
+                
+            } catch (error) {
+                outputContainer.innerHTML = `<p style="color: var(--error);">Conversion error: ${error.message}</p>`;
+            }
+        }
+
+        function parseCSV(csvText) {
+            const lines = csvText.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            const data = [];
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header] = values[index] || '';
+                });
+                data.push(row);
+            }
+            
+            return data;
+        }
+
+        function convertToCSV(data) {
+            if (!Array.isArray(data)) {
+                throw new Error('CSV conversion requires an array of objects');
+            }
+            
+            if (data.length === 0) return '';
+            
+            const headers = Object.keys(data[0]);
+            const csvLines = [headers.join(',')];
+            
+            data.forEach(row => {
+                const values = headers.map(header => {
+                    const value = row[header];
+                    return typeof value === 'string' && value.includes(',') ? `"${value}"` : value;
+                });
+                csvLines.push(values.join(','));
+            });
+            
+            return csvLines.join('\n');
+        }
+
+        function parseXML(xmlText) {
+            // Simple XML parser (for basic structures)
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(xmlText, 'text/xml');
+            
+            if (xmlDoc.getElementsByTagName('parsererror').length > 0) {
+                throw new Error('Invalid XML format');
+            }
+            
+            return xmlToObject(xmlDoc.documentElement);
+        }
+
+        function xmlToObject(xmlNode) {
+            const obj = {};
+            
+            // Handle attributes
+            if (xmlNode.attributes && xmlNode.attributes.length > 0) {
+                obj['@attributes'] = {};
+                for (let i = 0; i < xmlNode.attributes.length; i++) {
+                    const attr = xmlNode.attributes[i];
+                    obj['@attributes'][attr.name] = attr.value;
+                }
+            }
+            
+            // Handle child nodes
+            if (xmlNode.childNodes && xmlNode.childNodes.length > 0) {
+                for (let i = 0; i < xmlNode.childNodes.length; i++) {
+                    const child = xmlNode.childNodes[i];
+                    
+                    if (child.nodeType === 3) { // Text node
+                        const text = child.textContent.trim();
+                        if (text) {
+                            obj['#text'] = text;
+                        }
+                    } else if (child.nodeType === 1) { // Element node
+                        if (!obj[child.nodeName]) {
+                            obj[child.nodeName] = xmlToObject(child);
+                        } else {
+                            if (!Array.isArray(obj[child.nodeName])) {
+                                obj[child.nodeName] = [obj[child.nodeName]];
+                            }
+                            obj[child.nodeName].push(xmlToObject(child));
+                        }
+                    }
+                }
+            }
+            
+            return obj;
+        }
+
+        function convertToXML(data, rootName = 'root') {
+            function objectToXml(obj, nodeName) {
+                if (Array.isArray(obj)) {
+                    return obj.map(item => objectToXml(item, nodeName)).join('');
+                } else if (typeof obj === 'object' && obj !== null) {
+                    let xml = `<${nodeName}>`;
+                    Object.keys(obj).forEach(key => {
+                        xml += objectToXml(obj[key], key);
+                    });
+                    xml += `</${nodeName}>`;
+                    return xml;
+                } else {
+                    return `<${nodeName}>${escapeXml(String(obj))}</${nodeName}>`;
+                }
+            }
+            
+            return `<?xml version="1.0" encoding="UTF-8"?>\n${objectToXml(data, rootName)}`;
+        }
+
+        function escapeXml(text) {
+            return text.replace(/[<>&'"]/g, function(match) {
+                switch (match) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case "'": return '&apos;';
+                    case '"': return '&quot;';
+                    default: return match;
+                }
+            });
+        }
+
+        function parseYAML(yamlText) {
+            // Simple YAML parser (basic support)
+            const lines = yamlText.trim().split('\n');
+            const obj = {};
+            let currentPath = [];
+            
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed || trimmed.startsWith('#')) return;
+                
+                const indent = line.length - line.trimStart().length;
+                const colonIndex = trimmed.indexOf(':');
+                
+                if (colonIndex > -1) {
+                    const key = trimmed.substring(0, colonIndex).trim();
+                    const value = trimmed.substring(colonIndex + 1).trim();
+                    
+                    // Adjust path based on indentation
+                    currentPath = currentPath.slice(0, Math.floor(indent / 2));
+                    
+                    if (value) {
+                        setNestedValue(obj, [...currentPath, key], parseYamlValue(value));
+                    } else {
+                        currentPath.push(key);
+                    }
+                }
+            });
+            
+            return obj;
+        }
+
+        function parseYamlValue(value) {
+            if (value === 'true') return true;
+            if (value === 'false') return false;
+            if (value === 'null' || value === '~') return null;
+            if (!isNaN(value)) return Number(value);
+            if (value.startsWith('"') && value.endsWith('"')) return value.slice(1, -1);
+            return value;
+        }
+
+        function setNestedValue(obj, path, value) {
+            let current = obj;
+            for (let i = 0; i < path.length - 1; i++) {
+                if (!current[path[i]]) current[path[i]] = {};
+                current = current[path[i]];
+            }
+            current[path[path.length - 1]] = value;
+        }
+
+        function convertToYAML(data) {
+            function objectToYaml(obj, indent = 0) {
+                const spaces = '  '.repeat(indent);
+                let yaml = '';
+                
+                if (Array.isArray(obj)) {
+                    obj.forEach(item => {
+                        yaml += `${spaces}- `;
+                        if (typeof item === 'object' && item !== null) {
+                            yaml += '\n' + objectToYaml(item, indent + 1);
+                        } else {
+                            yaml += formatYamlValue(item) + '\n';
+                        }
+                    });
+                } else if (typeof obj === 'object' && obj !== null) {
+                    Object.keys(obj).forEach(key => {
+                        yaml += `${spaces}${key}: `;
+                        if (typeof obj[key] === 'object' && obj[key] !== null) {
+                            yaml += '\n' + objectToYaml(obj[key], indent + 1);
+                        } else {
+                            yaml += formatYamlValue(obj[key]) + '\n';
+                        }
+                    });
+                }
+                
+                return yaml;
+            }
+            
+            return objectToYaml(data);
+        }
+
+        function formatYamlValue(value) {
+            if (typeof value === 'string' && (value.includes(':') || value.includes('\n'))) {
+                return `"${value}"`;
+            }
+            return String(value);
+        }
+
+        function copyConvertedOutput(btn) {
+            const output = document.getElementById('convertedOutput').textContent;
+            if (output) {
+                navigator.clipboard.writeText(output).then(() => {
+                    const originalContent = btn.innerHTML;
+                    btn.innerHTML = '<i class="material-icons">check</i>';
+                    setTimeout(() => btn.innerHTML = originalContent, 2000);
+                    showNotification('Converted data copied', 'success');
+                });
+            }
+        }
+
+        function downloadConverted() {
+            const output = document.getElementById('convertedOutput').textContent;
+            const toFormat = document.getElementById('toFormat').value;
+            
+            if (output) {
+                const blob = new Blob([output], { type: getContentType(toFormat) });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `converted.${toFormat}`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('File downloaded', 'success');
+            }
+        }
+
+        function getContentType(format) {
+            switch (format) {
+                case 'json': return 'application/json';
+                case 'xml': return 'application/xml';
+                case 'csv': return 'text/csv';
+                case 'yaml': return 'text/yaml';
+                default: return 'text/plain';
+            }
+        }
+
+        function loadConverterSample() {
+            const sample = `name,age,city
+John Doe,30,New York
+Jane Smith,25,Los Angeles
+Bob Johnson,35,Chicago`;
+            
+            document.getElementById('converterInput').value = sample;
+            document.getElementById('fromFormat').value = 'csv';
+            document.getElementById('toFormat').value = 'json';
+        }
+
+        // ===========================================
+        // SCHEMA FUNCTIONS
+        // ===========================================
+        
+        let currentSchemaMode = 'generate';
+
+        function setSchemaMode(mode) {
+            currentSchemaMode = mode;
+            document.querySelectorAll('[data-schema]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.schema === mode);
+            });
+            
+            document.getElementById('generateSchemaPanel').classList.toggle('hidden', mode !== 'generate');
+            document.getElementById('validateSchemaPanel').classList.toggle('hidden', mode !== 'validate');
+        }
+
+        function generateSchema() {
+            const input = document.getElementById('schemaInput').value.trim();
+            const outputContainer = document.getElementById('schemaOutput');
+            
+            if (!input) {
+                outputContainer.innerHTML = '<p style="color: var(--error);">No JSON provided for schema generation</p>';
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(input);
+                const schema = generateJsonSchema(parsed);
+                
+                outputContainer.innerHTML = `<pre style="margin: 0; white-space: pre-wrap;">${escapeHtml(JSON.stringify(schema, null, 2))}</pre>`;
+                
+            } catch (error) {
+                outputContainer.innerHTML = `<p style="color: var(--error);">Invalid JSON: ${error.message}</p>`;
+            }
+        }
+
+        function generateJsonSchema(obj, title = 'Generated Schema') {
+            const schema = {
+                "$schema": "http://json-schema.org/draft-07/schema#",
+                "title": title,
+                "type": getJsonType(obj)
+            };
+            
+            if (Array.isArray(obj)) {
+                if (obj.length > 0) {
+                    schema.items = generateJsonSchema(obj[0]);
+                }
+            } else if (typeof obj === 'object' && obj !== null) {
+                schema.properties = {};
+                schema.required = [];
+                
+                Object.keys(obj).forEach(key => {
+                    schema.properties[key] = generateJsonSchema(obj[key]);
+                    schema.required.push(key);
+                });
+                
+                schema.additionalProperties = false;
+            }
+            
+            return schema;
+        }
+
+        function getJsonType(value) {
+            if (value === null) return 'null';
+            if (Array.isArray(value)) return 'array';
+            if (typeof value === 'object') return 'object';
+            if (typeof value === 'number') {
+                return Number.isInteger(value) ? 'integer' : 'number';
+            }
+            return typeof value;
+        }
+
+        function validateAgainstSchema() {
+            const schema = document.getElementById('schemaDefinition').value.trim();
+            const data = document.getElementById('dataToValidate').value.trim();
+            const outputContainer = document.getElementById('schemaOutput');
+            
+            if (!schema || !data) {
+                outputContainer.innerHTML = '<p style="color: var(--error);">Both schema and data are required for validation</p>';
+                return;
+            }
+
+            try {
+                const parsedSchema = JSON.parse(schema);
+                const parsedData = JSON.parse(data);
+                
+                const validation = validateDataAgainstSchema(parsedData, parsedSchema);
+                displaySchemaValidationResults(validation);
+                
+            } catch (error) {
+                outputContainer.innerHTML = `<p style="color: var(--error);">Parse error: ${error.message}</p>`;
+            }
+        }
+
+        function validateDataAgainstSchema(data, schema, path = '') {
+            const errors = [];
+            
+            // Type validation
+            const dataType = getJsonType(data);
+            if (schema.type && schema.type !== dataType) {
+                errors.push({
+                    path: path || 'root',
+                    message: `Expected type '${schema.type}' but got '${dataType}'`
+                });
+            }
+            
+            // Object validation
+            if (schema.type === 'object' && schema.properties) {
+                if (typeof data === 'object' && data !== null && !Array.isArray(data)) {
+                    // Check required properties
+                    if (schema.required) {
+                        schema.required.forEach(prop => {
+                            if (!(prop in data)) {
+                                errors.push({
+                                    path: path ? `${path}.${prop}` : prop,
+                                    message: `Required property '${prop}' is missing`
+                                });
+                            }
+                        });
+                    }
+                    
+                    // Validate existing properties
+                    Object.keys(data).forEach(key => {
+                        if (schema.properties[key]) {
+                            const propPath = path ? `${path}.${key}` : key;
+                            const propErrors = validateDataAgainstSchema(data[key], schema.properties[key], propPath);
+                            errors.push(...propErrors);
+                        } else if (schema.additionalProperties === false) {
+                            errors.push({
+                                path: path ? `${path}.${key}` : key,
+                                message: `Additional property '${key}' is not allowed`
+                            });
+                        }
+                    });
+                }
+            }
+            
+            // Array validation
+            if (schema.type === 'array' && schema.items) {
+                if (Array.isArray(data)) {
+                    data.forEach((item, index) => {
+                        const itemPath = path ? `${path}[${index}]` : `[${index}]`;
+                        const itemErrors = validateDataAgainstSchema(item, schema.items, itemPath);
+                        errors.push(...itemErrors);
+                    });
+                }
+            }
+            
+            return errors;
+        }
+
+        function displaySchemaValidationResults(errors) {
+            const container = document.getElementById('schemaOutput');
+            
+            if (errors.length === 0) {
+                container.innerHTML = `
+                    <div style="color: var(--success); padding: 1rem; background: rgba(16, 185, 129, 0.1); border-radius: var(--radius);">
+                        <h3 style="margin: 0 0 0.5rem 0;"><i class="material-icons" style="vertical-align: middle;">check_circle</i> Valid</h3>
+                        <p style="margin: 0;">The data conforms to the provided schema.</p>
+                    </div>
+                `;
+            } else {
+                let html = `
+                    <div style="color: var(--error); margin-bottom: 1rem;">
+                        <h3><i class="material-icons" style="vertical-align: middle;">error</i> Schema Validation Errors (${errors.length})</h3>
+                    </div>
+                `;
+                
+                errors.forEach(error => {
+                    html += `
+                        <div style="padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius); margin-bottom: 0.5rem;">
+                            <strong>Path:</strong> ${error.path}<br>
+                            <strong>Error:</strong> ${error.message}
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            }
+        }
+
+        function copySchemaOutput(btn) {
+            const output = document.getElementById('schemaOutput').textContent;
+            if (output) {
+                navigator.clipboard.writeText(output).then(() => {
+                    const originalContent = btn.innerHTML;
+                    btn.innerHTML = '<i class="material-icons">check</i>';
+                    setTimeout(() => btn.innerHTML = originalContent, 2000);
+                    showNotification('Schema copied', 'success');
+                });
+            }
+        }
+
+        // ===========================================
+        // COMPARE FUNCTIONS
+        // ===========================================
+        
+        function compareJsons() {
+            const jsonA = document.getElementById('compareInputA').value.trim();
+            const jsonB = document.getElementById('compareInputB').value.trim();
+            
+            if (!jsonA || !jsonB) {
+                showNotification('Both JSON inputs are required for comparison', 'error');
+                return;
+            }
+
+            try {
+                const parsedA = JSON.parse(jsonA);
+                const parsedB = JSON.parse(jsonB);
+                
+                const options = {
+                    ignoreOrder: document.getElementById('ignoreOrderOption').checked,
+                    ignoreType: document.getElementById('ignoreTypeOption').checked
+                };
+                
+                const diff = createDiff(parsedA, parsedB, '', options);
+                displayComparisonResults(diff);
+                
+            } catch (error) {
+                showNotification(`Parse error: ${error.message}`, 'error');
+            }
+        }
+
+        function createDiff(objA, objB, path = '', options = {}) {
+            const diff = {
+                added: [],
+                removed: [],
+                modified: [],
+                unchanged: []
+            };
+            
+            if (objA === objB) {
+                diff.unchanged.push({ path, value: objA });
+                return diff;
+            }
+            
+            const typeA = getJsonType(objA);
+            const typeB = getJsonType(objB);
+            
+            if (!options.ignoreType && typeA !== typeB) {
+                diff.modified.push({
+                    path,
+                    oldValue: objA,
+                    newValue: objB,
+                    reason: 'Type change'
+                });
+                return diff;
+            }
+            
+            if (typeA === 'object' && typeB === 'object') {
+                const keysA = new Set(Object.keys(objA || {}));
+                const keysB = new Set(Object.keys(objB || {}));
+                const allKeys = new Set([...keysA, ...keysB]);
+                
+                allKeys.forEach(key => {
+                    const keyPath = path ? `${path}.${key}` : key;
+                    
+                    if (!keysA.has(key)) {
+                        diff.added.push({ path: keyPath, value: objB[key] });
+                    } else if (!keysB.has(key)) {
+                        diff.removed.push({ path: keyPath, value: objA[key] });
+                    } else {
+                        const subDiff = createDiff(objA[key], objB[key], keyPath, options);
+                        diff.added.push(...subDiff.added);
+                        diff.removed.push(...subDiff.removed);
+                        diff.modified.push(...subDiff.modified);
+                        diff.unchanged.push(...subDiff.unchanged);
+                    }
+                });
+            } else if (typeA === 'array' && typeB === 'array') {
+                const arrayA = objA || [];
+                const arrayB = objB || [];
+                const maxLength = Math.max(arrayA.length, arrayB.length);
+                
+                for (let i = 0; i < maxLength; i++) {
+                    const itemPath = `${path}[${i}]`;
+                    
+                    if (i >= arrayA.length) {
+                        diff.added.push({ path: itemPath, value: arrayB[i] });
+                    } else if (i >= arrayB.length) {
+                        diff.removed.push({ path: itemPath, value: arrayA[i] });
+                    } else {
+                        const subDiff = createDiff(arrayA[i], arrayB[i], itemPath, options);
+                        diff.added.push(...subDiff.added);
+                        diff.removed.push(...subDiff.removed);
+                        diff.modified.push(...subDiff.modified);
+                        diff.unchanged.push(...subDiff.unchanged);
+                    }
+                }
+            } else if (objA !== objB) {
+                diff.modified.push({
+                    path,
+                    oldValue: objA,
+                    newValue: objB,
+                    reason: 'Value change'
+                });
+            }
+            
+            return diff;
+        }
+
+        function displayComparisonResults(diff) {
+            const resultsContainer = document.getElementById('comparisonResults');
+            const summaryContainer = document.getElementById('diffSummary');
+            const outputContainer = document.getElementById('diffOutput');
+            
+            // Show results panel
+            resultsContainer.style.display = 'block';
+            
+            // Create summary
+            const totalChanges = diff.added.length + diff.removed.length + diff.modified.length;
+            summaryContainer.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1rem;">
+                    <div class="stat">
+                        <span class="stat-label">Total Changes:</span> ${totalChanges}
+                    </div>
+                    <div class="stat" style="color: var(--success);">
+                        <span class="stat-label">Added:</span> ${diff.added.length}
+                    </div>
+                    <div class="stat" style="color: var(--error);">
+                        <span class="stat-label">Removed:</span> ${diff.removed.length}
+                    </div>
+                    <div class="stat" style="color: var(--warning);">
+                        <span class="stat-label">Modified:</span> ${diff.modified.length}
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Unchanged:</span> ${diff.unchanged.length}
+                    </div>
+                </div>
+            `;
+            
+            // Create detailed diff view
+            let html = '';
+            
+            if (diff.added.length > 0) {
+                html += '<h4 style="color: var(--success);"><i class="material-icons" style="vertical-align: middle;">add</i> Added</h4>';
+                diff.added.forEach(item => {
+                    html += `
+                        <div style="padding: 0.5rem; background: rgba(16, 185, 129, 0.1); border-radius: var(--radius); margin-bottom: 0.5rem; border-left: 4px solid var(--success);">
+                            <strong>${item.path}</strong><br>
+                            <code>${escapeHtml(JSON.stringify(item.value, null, 2))}</code>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (diff.removed.length > 0) {
+                html += '<h4 style="color: var(--error);"><i class="material-icons" style="vertical-align: middle;">remove</i> Removed</h4>';
+                diff.removed.forEach(item => {
+                    html += `
+                        <div style="padding: 0.5rem; background: rgba(239, 68, 68, 0.1); border-radius: var(--radius); margin-bottom: 0.5rem; border-left: 4px solid var(--error);">
+                            <strong>${item.path}</strong><br>
+                            <code>${escapeHtml(JSON.stringify(item.value, null, 2))}</code>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (diff.modified.length > 0) {
+                html += '<h4 style="color: var(--warning);"><i class="material-icons" style="vertical-align: middle;">edit</i> Modified</h4>';
+                diff.modified.forEach(item => {
+                    html += `
+                        <div style="padding: 0.5rem; background: rgba(245, 158, 11, 0.1); border-radius: var(--radius); margin-bottom: 0.5rem; border-left: 4px solid var(--warning);">
+                            <strong>${item.path}</strong> ${item.reason ? `(${item.reason})` : ''}<br>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.5rem;">
+                                <div>
+                                    <small style="color: var(--error);">Before:</small><br>
+                                    <code>${escapeHtml(JSON.stringify(item.oldValue, null, 2))}</code>
+                                </div>
+                                <div>
+                                    <small style="color: var(--success);">After:</small><br>
+                                    <code>${escapeHtml(JSON.stringify(item.newValue, null, 2))}</code>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (totalChanges === 0) {
+                html = `
+                    <div style="text-align: center; padding: 2rem; color: var(--success);">
+                        <i class="material-icons" style="font-size: 3rem;">check_circle</i>
+                        <h3>No Differences Found</h3>
+                        <p>The JSON objects are identical.</p>
+                    </div>
+                `;
+            }
+            
+            outputContainer.innerHTML = html;
+        }
+
+        function clearComparison() {
+            document.getElementById('compareInputA').value = '';
+            document.getElementById('compareInputB').value = '';
+            document.getElementById('comparisonResults').style.display = 'none';
+        }
+
+        function swapComparison() {
+            const inputA = document.getElementById('compareInputA');
+            const inputB = document.getElementById('compareInputB');
+            const temp = inputA.value;
+            inputA.value = inputB.value;
+            inputB.value = temp;
+            showNotification('JSON inputs swapped', 'success');
+        }
+
+        function loadComparisonSample(side) {
+            const sampleA = {
+                name: "John Doe",
+                age: 30,
+                skills: ["JavaScript", "Python"],
+                address: {
+                    city: "New York",
+                    country: "USA"
+                }
+            };
+            
+            const sampleB = {
+                name: "John Doe",
+                age: 31,
+                skills: ["JavaScript", "Python", "React"],
+                address: {
+                    city: "San Francisco",
+                    country: "USA"
+                },
+                phone: "+1-555-0123"
+            };
+            
+            const targetId = side === 'A' ? 'compareInputA' : 'compareInputB';
+            const sample = side === 'A' ? sampleA : sampleB;
+            
+            document.getElementById(targetId).value = JSON.stringify(sample, null, 2);
+        }
+
+        function exportDiff() {
+            const diffOutput = document.getElementById('diffOutput').textContent;
+            if (diffOutput) {
+                const blob = new Blob([diffOutput], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'json-diff.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+                showNotification('Diff exported', 'success');
+            }
         }
 
         // Initialize the application
