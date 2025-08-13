@@ -18,14 +18,22 @@ class JSONEditor {
         this.displayJson = this.displayJson.bind(this);
         this.parseAndDisplay = this.parseAndDisplay.bind(this);
         this.attachEventListeners = this.attachEventListeners.bind(this);
+        this.openSettings = this.openSettings.bind(this);
+        this.closeSettings = this.closeSettings.bind(this);
+        this.setupSettingsModal = this.setupSettingsModal.bind(this);
 
         this.initApp();
     }
 
     initApp() {
         this.loadSettings();
-        this.loadSample();
+        if (this.state.settings.autoSave) {
+            this.loadFromLocalStorage();
+        } else {
+            this.loadSample();
+        }
         this.setupEventListeners();
+        this.setupSettingsModal();
     }
 
     loadSettings() {
@@ -79,6 +87,24 @@ class JSONEditor {
 
         if (this.state.settings.autoFormat) {
             this.debounce(this.parseAndDisplay.bind(this), 500)();
+        }
+
+        if (this.state.settings.autoSave) {
+            this.autoSave();
+        }
+    }
+
+    autoSave() {
+        const input = document.getElementById('jsonInput').value;
+        localStorage.setItem('jsonStudioInput', input);
+        this.showNotification('Saved to local storage', 'success');
+    }
+
+    loadFromLocalStorage() {
+        const savedInput = localStorage.getItem('jsonStudioInput');
+        if (savedInput) {
+            document.getElementById('jsonInput').value = savedInput;
+            this.parseAndDisplay();
         }
     }
 
@@ -143,13 +169,17 @@ class JSONEditor {
         const isEmpty = items.length === 0;
         const isCollapsed = this.state.collapsedPaths.has(path);
 
+        const lineNumberHtml = (lineNumber) => {
+            return this.state.settings.lineNumbers ? `<span class="line-number">${lineNumber}</span>` : '';
+        };
+
         if (isEmpty) {
             return `<span class="json-bracket">${isArray ? '[]' : '{}'}</span>`;
         }
 
         let html = `
             <div class="json-line">
-                <span class="line-number">${depth + 1}</span>
+                ${lineNumberHtml(depth + 1)}
                 <div class="json-content">
                     <span class="expandable" data-path="${path}">
                         <i class="material-icons expand-icon ${isCollapsed ? 'collapsed' : ''}">
@@ -170,7 +200,7 @@ class JSONEditor {
 
                 html += `
                     <div class="json-line" style="margin-left: ${(depth + 1) * 1.5}rem;">
-                        <span class="line-number">${depth + index + 2}</span>
+                        ${lineNumberHtml(depth + index + 2)}
                         <div class="json-content">
                             ${!isArray ? `<span class="json-key">"${this.escapeHtml(key)}"</span>: ` : ''}
                             ${this.renderTreeView(value, itemPath, depth + 1)}
@@ -182,7 +212,7 @@ class JSONEditor {
 
             html += `
                 <div class="json-line" style="margin-left: ${depth * 1.5}rem;">
-                    <span class="line-number">${depth + items.length + 2}</span>
+                    ${lineNumberHtml(depth + items.length + 2)}
                     <div class="json-content">
                         <span class="json-bracket">${isArray ? ']' : '}'}</span>
                     </div>
@@ -543,9 +573,9 @@ class JSONEditor {
     }
 
     setupEventListeners() {
-        document.querySelector('[onclick="toggleTheme()"]').addEventListener('click', () => this.toggleTheme());
-        document.querySelector('[onclick="openSettings()"]').addEventListener('click', () => this.openSettings());
-        document.querySelector('[onclick="document.getElementById(\'fileInput\').click()"]').addEventListener('click', () => document.getElementById('fileInput').click());
+        document.getElementById('toggleThemeBtn').addEventListener('click', () => this.toggleTheme());
+        document.getElementById('settingsBtn').addEventListener('click', () => this.openSettings());
+        document.getElementById('importFileBtn').addEventListener('click', () => document.getElementById('fileInput').click());
         document.getElementById('fileInput').addEventListener('change', (e) => this.loadFile(e));
 
         document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -556,27 +586,25 @@ class JSONEditor {
         document.getElementById('jsonInput').addEventListener('keyup', () => this.updateCursorInfo());
         document.getElementById('jsonInput').addEventListener('click', () => this.updateCursorInfo());
 
-        document.querySelector('[onclick="clearInput()"]').addEventListener('click', () => this.clearInput());
-        document.querySelector('[onclick="loadSample()"]').addEventListener('click', () => this.loadSample());
-        document.querySelector('[onclick="formatInput()"]').addEventListener('click', () => this.formatInput());
+        document.getElementById('clearInputBtn').addEventListener('click', () => this.clearInput());
+        document.getElementById('loadSampleBtn').addEventListener('click', () => this.loadSample());
+        document.getElementById('formatInputBtn').addEventListener('click', () => this.formatInput());
 
-        document.querySelector('[onclick="minifyJson()"]').addEventListener('click', () => this.minifyJson());
-        document.querySelector('[onclick="beautifyJson()"]').addEventListener('click', () => this.beautifyJson());
-        document.querySelector('[onclick="validateJson()"]').addEventListener('click', () => this.validateJson());
-        document.querySelector('[onclick="downloadJson()"]').addEventListener('click', () => this.downloadJson());
+        document.getElementById('minifyJsonBtn').addEventListener('click', () => this.minifyJson());
+        document.getElementById('beautifyJsonBtn').addEventListener('click', () => this.beautifyJson());
+        document.getElementById('validateJsonBtn').addEventListener('click', () => this.validateJson());
+        document.getElementById('downloadJsonBtn').addEventListener('click', () => this.downloadJson());
 
         document.getElementById('searchInput').addEventListener('input', () => this.searchJson());
 
-        document.querySelector('[onclick="expandAll()"]').addEventListener('click', () => this.expandAll());
-        document.querySelector('[onclick="collapseAll()"]').addEventListener('click', () => this.collapseAll());
-        document.querySelector('[onclick="copyOutput(this)"]').addEventListener('click', (e) => this.copyOutput(e.currentTarget));
+        document.getElementById('expandAllBtn').addEventListener('click', () => this.expandAll());
+        document.getElementById('collapseAllBtn').addEventListener('click', () => this.collapseAll());
+        document.getElementById('copyOutputBtn').addEventListener('click', (e) => this.copyOutput(e.currentTarget));
 
         document.querySelectorAll('.tab-button[data-view]').forEach(btn => {
             btn.addEventListener('click', () => this.setViewMode(btn.dataset.view));
         });
 
-        // This is a simplified way to handle dynamic listeners.
-        // A more robust solution might use event delegation on the viewer.
         document.getElementById('jsonViewer').addEventListener('click', (e) => {
             const expandable = e.target.closest('.expandable');
             if (expandable) {
@@ -593,10 +621,92 @@ class JSONEditor {
                 }
             }
         });
+
+        // Validator Tab
+        document.getElementById('validateJsonAdvancedBtn').addEventListener('click', () => this.validateJsonAdvanced());
+        document.getElementById('loadFromEditorValidatorBtn').addEventListener('click', () => this.loadFromEditor('validator'));
+        document.getElementById('clearValidatorInputBtn').addEventListener('click', () => this.clearValidatorInput());
+
+        // Formatter Tab
+        document.getElementById('applyCustomFormatBtn').addEventListener('click', () => this.applyCustomFormat());
+        document.getElementById('loadFromEditorFormatterBtn').addEventListener('click', () => this.loadFromEditor('formatter'));
+        document.getElementById('copyFormattedOutputBtn').addEventListener('click', (e) => this.copyFormattedOutput(e.currentTarget));
+
+        // Converter Tab
+        document.getElementById('convertFormatBtn').addEventListener('click', () => this.convertFormat());
+        document.getElementById('loadFromEditorConverterBtn').addEventListener('click', () => this.loadFromEditor('converter'));
+        document.getElementById('loadConverterSampleBtn').addEventListener('click', () => this.loadConverterSample());
+        document.getElementById('copyConvertedOutputBtn').addEventListener('click', (e) => this.copyConvertedOutput(e.currentTarget));
+        document.getElementById('downloadConvertedBtn').addEventListener('click', () => this.downloadConverted());
+
+        // Schema Tab
+        document.querySelectorAll('[data-schema]').forEach(btn => {
+            btn.addEventListener('click', () => this.setSchemaMode(btn.dataset.schema));
+        });
+        document.getElementById('generateSchemaBtn').addEventListener('click', () => this.generateSchema());
+        document.getElementById('loadFromEditorSchemaBtn').addEventListener('click', () => this.loadFromEditor('schema'));
+        document.getElementById('validateAgainstSchemaBtn').addEventListener('click', () => this.validateAgainstSchema());
+        document.getElementById('copySchemaOutputBtn').addEventListener('click', (e) => this.copySchemaOutput(e.currentTarget));
+
+        // Compare Tab
+        document.getElementById('compareJsonsBtn').addEventListener('click', () => this.compareJsons());
+        document.getElementById('clearComparisonBtn').addEventListener('click', () => this.clearComparison());
+        document.getElementById('swapComparisonBtn').addEventListener('click', () => this.swapComparison());
+        document.getElementById('loadFromEditorCompareABtn').addEventListener('click', () => this.loadFromEditor('compareA'));
+        document.getElementById('loadComparisonSampleABtn').addEventListener('click', () => this.loadComparisonSample('A'));
+        document.getElementById('loadFromEditorCompareBBtn').addEventListener('click', () => this.loadFromEditor('compareB'));
+        document.getElementById('loadComparisonSampleBBtn').addEventListener('click', () => this.loadComparisonSample('B'));
+        document.getElementById('exportDiffBtn').addEventListener('click', () => this.exportDiff());
     }
 
     openSettings() {
-        this.showNotification('Settings panel coming soon!', 'success');
+        const modal = document.getElementById('settingsModal');
+        modal.style.display = 'flex';
+    }
+
+    closeSettings() {
+        const modal = document.getElementById('settingsModal');
+        modal.style.display = 'none';
+    }
+
+    setupSettingsModal() {
+        const settings = this.state.settings;
+
+        // Set initial values
+        document.getElementById('themeSetting').value = settings.theme;
+        document.getElementById('autoFormatSetting').checked = settings.autoFormat;
+        document.getElementById('lineNumbersSetting').checked = settings.lineNumbers;
+        document.getElementById('autoSaveSetting').checked = settings.autoSave;
+
+        // Add event listeners
+        document.getElementById('closeSettingsBtn').addEventListener('click', () => this.closeSettings());
+        document.getElementById('settingsModal').addEventListener('click', (e) => {
+            if (e.target.id === 'settingsModal') {
+                this.closeSettings();
+            }
+        });
+
+        document.getElementById('themeSetting').addEventListener('change', (e) => {
+            settings.theme = e.target.value;
+            this.toggleTheme();
+        });
+
+        document.getElementById('autoFormatSetting').addEventListener('change', (e) => {
+            settings.autoFormat = e.target.checked;
+            this.saveSettings();
+        });
+
+        document.getElementById('lineNumbersSetting').addEventListener('change', (e) => {
+            settings.lineNumbers = e.target.checked;
+            this.saveSettings();
+            // Re-render to show/hide line numbers
+            this.displayJson();
+        });
+
+        document.getElementById('autoSaveSetting').addEventListener('change', (e) => {
+            settings.autoSave = e.target.checked;
+            this.saveSettings();
+        });
     }
 
     // ===========================================
@@ -1651,6 +1761,4 @@ Bob Johnson,35,Chicago`;
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    new JSONEditor();
-});
+export default JSONEditor;
