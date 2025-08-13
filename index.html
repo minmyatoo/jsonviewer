@@ -696,6 +696,51 @@
 
         .hidden {
             display: none;
+            pointer-events: none;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background: var(--surface);
+            padding: 2rem;
+            border-radius: var(--radius-lg);
+            width: 90%;
+            max-width: 500px;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .modal-content .setting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -1076,7 +1121,7 @@
                             </div>
                         </div>
                         <div class="panel-content">
-                            <div class.json-viewer" id="convertedOutput">
+                            <div class="json-viewer" id="convertedOutput">
                                 <div class="loading">
                                     <i class="material-icons" style="font-size: 3rem; color: var(--text-tertiary);">transform</i>
                                     <p>Converted data will appear here</p>
@@ -1253,6 +1298,50 @@
 
         </main>
     </div>
-    <script src="js/app.js" defer></script>
+    <script type="module">
+        import JSONEditor from './js/app.js';
+        document.addEventListener('DOMContentLoaded', () => {
+            new JSONEditor();
+        });
+    </script>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="modal-overlay hidden">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button id="closeSettingsBtn" class="btn-icon btn-ghost">
+                    <i class="material-icons">close</i>
+                </button>
+            </div>
+            <div class="modal-content">
+                <div class="setting">
+                    <label for="themeSetting">Theme</label>
+                    <select id="themeSetting" class="input">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="autoFormatSetting">
+                        <input type="checkbox" id="autoFormatSetting">
+                        Auto-format on input
+                    </label>
+                </div>
+                <div class="setting">
+                    <label for="lineNumbersSetting">
+                        <input type="checkbox" id="lineNumbersSetting">
+                        Show line numbers
+                    </label>
+                </div>
+                <div class="setting">
+                    <label for="autoSaveSetting">
+                        <input type="checkbox" id="autoSaveSetting">
+                        Auto-save to local storage
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
